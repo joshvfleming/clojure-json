@@ -175,7 +175,7 @@
   [#^BufferedReader b-reader]
   (let [_ (.mark b-reader 1)
         int-char (.read b-reader)
-        char (char int-char)]
+        char (and (not= -1 int-char) (char int-char))]
     (cond
      (= char \{) (decode-object b-reader)
      (= char \[) (decode-array b-reader)
