@@ -29,14 +29,6 @@
 (declare decode-value)   ;decode-value is used before it's defined
                          ;so we have to pre-define it
 
-(defn- convert-number
-  "Converts x to an int iff it can be done without losing significance"
-  [x]
-  (let [ix (int x)]
-    (if (= ix x)
-      ix
-      x)))
-
 (defn- json-ws?
   "Returns true if the Unicode codepoint is an 'insignificant whitespace' per the JSON
    standard, false otherwise.  Cf. RFC 4627, sec. 2)"
@@ -175,7 +167,7 @@
   [#^BufferedReader b-reader]
   (let [_ (.reset b-reader)
         number-str (read-matching b-reader number-char?)]
-    (convert-number (read-string number-str))))
+    (read-string number-str)))
 
 (defn- decode-value
   "Decodes and returns a value (string, number, boolean, null, object, or array).
