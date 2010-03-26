@@ -63,6 +63,9 @@
         indent (apply str (replicate indent-size " "))]
     (str (encoder/encode-helper value writer pad "" indent-size))))
 
+(let [m (meta #'encode-to-str)]
+  (def #^{:doc (:doc m) :arglists (:arglists m)} encode encode-to-str))
+
 (defn encode-to-writer
   "Takes an arbitrarily nested clojure datastructure
    and a java.io.Writer and returns a JSON-encoded
@@ -89,3 +92,6 @@
   "Takes a JSON-encoded string and returns a clojure datastructure."
   [value]
   (decode-from-reader (StringReader. value)))
+
+(let [m (meta #'decode-from-str)]
+  (def #^{:doc (:doc m) :arglists (:arglists m)} decode decode-from-str))
