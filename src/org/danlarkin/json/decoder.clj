@@ -26,12 +26,11 @@
 (ns org.danlarkin.json.decoder
   (:import (java.io BufferedReader)))
 
-(declare decode-value)   ;decode-value is used before it's defined
-                         ;so we have to pre-define it
+(declare decode-value)
 
 (defn- json-ws?
-  "Returns true if the Unicode codepoint is an 'insignificant whitespace' per the JSON
-   standard, false otherwise.  Cf. RFC 4627, sec. 2)"
+  "Returns true if the Unicode codepoint is an 'insignificant whitespace' per
+   the JSON standard, false otherwise.  Cf. RFC 4627, sec. 2)"
   [#^Integer codepoint]
   (cond
    (= codepoint 0x20) true ; Space
@@ -41,7 +40,8 @@
    :else false))
 
 (defn- number-char?
-  "Returns true if the Unicode codepoint is allowed in a number.  Cf. RFC 4627, sec. 2.4)"
+  "Returns true if the Unicode codepoint is allowed in a number.
+  Cf. RFC 4627, sec. 2.4)"
   [#^Integer codepoint]
   (cond
    (and (>= codepoint 0x30) (<= codepoint 0x39)) true ; 0-9
@@ -52,8 +52,8 @@
    :else false))
 
 (defn- read-matching
-  "Reads and returns a string containing 0 or more characters matching match-fn from
-   a BufferedReader."
+  "Reads and returns a string containing 0 or more characters matching match-fn
+   from a BufferedReader."
   [#^BufferedReader b-reader match-fn]
   (loop [s ""]
     (let [_ (.mark b-reader 1)
@@ -88,7 +88,8 @@
                    value (decode-value b-reader)
                    _ (eat-whitespace b-reader)]
                (when-not (= name-sep 0x3A)
-                 (throw (Exception. "Error parsing object: colon not where expected.")))
+                 (throw (Exception.
+                         "Error parsing object: colon not where expected.")))
                (recur (assoc object (keyword key) value)))))))
 
 (defn- decode-array
@@ -120,35 +121,37 @@
       0x74 \u0009})
 
 (defn- unescape
-  "We've read a backslash, now figure out what character it was escaping and return
-   it."
+  "We've read a backslash, now figure out what character it was escaping
+   and return it."
   [#^BufferedReader b-reader]
   (let [codepoint (.read b-reader)
         map-value (unescape-map codepoint)]
     (cond
      map-value map-value
      (= codepoint 0x75)
-       (read-string (str
-                     "\\u"
-                     (apply str (take 4 (map
-                                         #(char (.read #^BufferedReader %))
-                                         (repeat b-reader)))))))))
+     (read-string (str
+                   "\\u"
+                   (apply str (take 4 (map
+                                       #(char (.read #^BufferedReader %))
+                                       (repeat b-reader)))))))))
 
 (defn- decode-string
-  "Decodes a JSON string and returns it.  NOTE: strings are terminated by a double-quote
-   so we won't have to worry about back-tracking."
+  "Decodes a JSON string and returns it.  NOTE: strings are terminated by a
+   double-quote so we won't have to worry about back-tracking."
   [#^BufferedReader b-reader]
   (loop [s ""]
     (let [codepoint (.read b-reader)]
       (cond
        (= codepoint -1) (throw (Exception. "Hit end of input inside a string!"))
        (= codepoint 0x22) s ; done (and we ate the close double-quote already)
-       (= codepoint 0x5C) (recur (str s (unescape b-reader))) ; backslash escape sequence
+       ;; backslash escape sequence
+       (= codepoint 0x5C) (recur (str s (unescape b-reader)))
        :else (recur (str s (char codepoint)))))))
 
 (defn- decode-const
-  "Decodes an expected constant, throwing an exception if the buffer contents don't
-   match the expectation.  Otherwise, the supplied constant value is returned."
+  "Decodes an expected constant, throwing an exception if the buffer contents
+   don't match the expectation. Otherwise, the supplied constant value is
+   returned."
   [#^BufferedReader b-reader #^String expected value]
   (let [exp-len (count expected)
         got (loop [s "" br b-reader len exp-len]
@@ -162,15 +165,15 @@
                           " expected: " expected))))))
 
 (defn- decode-number
-  "Decodes a number and returns it.  NOTE: first character of the number has already
-   read so the first thing we need to do is reset the BufferedReader."
+  "Decodes a number and returns it.  NOTE: first character of the number has
+   already read so the first thing we need to do is reset the BufferedReader."
   [#^BufferedReader b-reader]
   (let [_ (.reset b-reader)
         number-str (read-matching b-reader number-char?)]
     (read-string number-str)))
 
 (defn- decode-value
-  "Decodes and returns a value (string, number, boolean, null, object, or array).
+  "Decodes & returns a value (string, number, boolean, null, object, or array).
    NOTE: decode-value is not responsible for eating whitespace after the value."
   [#^BufferedReader b-reader]
   (let [_ (.mark b-reader 1)

@@ -83,7 +83,8 @@
 (defn- encode-coll
   "Encodes a collection into JSON."
   [#^clojure.lang.IPersistentCollection coll #^Writer writer
-   #^String pad #^String current-indent #^String start-token-indent #^Integer indent-size]
+   #^String pad #^String current-indent #^String start-token-indent
+   #^Integer indent-size]
   (let [end-token-indent (apply str (drop indent-size current-indent))
         next-indent (get-next-indent current-indent indent-size)]
     (.append writer (str start-token-indent (start-token coll) pad))
@@ -105,11 +106,11 @@
       })
 
 (defn- escaped-char
-  "Given a char, return either the char or an escaped representation.  If a character
-   must be escaped and there is a shortened 'backslash' escape sequence available, it
-   is used.  Otherwise the character is escaped as backslash-u-4-hex-digits.  The /
-   (solidus) character can be escaped with a backslash but that is not required and
-   this code does not."
+  "Given a char, return either the char or an escaped representation.  If a
+   character must be escaped and there is a shortened 'backslash' escape
+   sequence available, it is used.  Otherwise the character is escaped as
+   backslash-u-4-hex-digits.  The / (solidus) character can be escaped with
+   a backslash but that is not required and this code does not."
   [#^Character c]
   (let [quick-escape (escape-map c)]
     (cond
@@ -142,13 +143,30 @@
                       x
                       (get-next-indent current-indent indent-size))]
     (cond
-     (= (class value) java.lang.Boolean) (.append writer (str current-indent value))
-     (nil? value) (.append writer (str current-indent 'null))
-     (string? value) (.append writer (str current-indent \" (escaped-str value) \"))
-     (number? value) (.append writer (str current-indent value))
-     (keyword? value) (.append writer
-                               (str current-indent \" (escaped-str (subs (str value) 1)) \"))
-     (symbol? value) (encode-symbol value writer pad)
-     (map-entry? value) (encode-map-entry value writer pad current-indent indent-size)
-     (coll? value) (encode-coll value writer pad next-indent current-indent indent-size)
-     :else (encode-custom value writer pad next-indent current-indent indent-size))))
+     (= (class value) java.lang.Boolean)
+     (.append writer (str current-indent value))
+
+     (nil? value)
+     (.append writer (str current-indent 'null))
+
+     (string? value)
+     (.append writer (str current-indent \" (escaped-str value) \"))
+
+     (number? value)
+     (.append writer (str current-indent value))
+
+     (keyword? value)
+     (.append writer (str current-indent \"
+                          (escaped-str (subs (str value) 1)) \"))
+
+     (symbol? value)
+     (encode-symbol value writer pad)
+
+     (map-entry? value)
+     (encode-map-entry value writer pad current-indent indent-size)
+
+     (coll? value)
+     (encode-coll value writer pad next-indent current-indent indent-size)
+
+     :else
+     (encode-custom value writer pad next-indent current-indent indent-size))))
