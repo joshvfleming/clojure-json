@@ -92,6 +92,22 @@
   (is (= (json/decode-from-str "-9.3e+0") -9.3)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;      Collections      ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest collections
+  (is (:json= ["1 2 3"]))
+  (is (:json= {:a 1 :b 2}))
+  (is (:json= {:a "a" :b "b"}))
+  ;; default set behaviour:
+  (is (= ["a" "b"]
+           (json/decode (json/encode #{"a" "b"}))))
+  ;; constant-time-lookup-preserving behaviour:
+  (is (= {:a :a :b :b})
+      (binding [org.danlarkin.json.encoder/*sets-as-maps* true]
+        (json/decode (json/encode #{"a" "b"})))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;       Unicode         ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (deftest unicode-chars
