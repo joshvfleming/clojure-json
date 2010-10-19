@@ -26,6 +26,11 @@
 (ns org.danlarkin.json.encoder
   (:import (java.io Writer StringWriter)))
 
+(def #^{:doc "When true, encodes sets as maps of the keys to themselves,
+  which is how they are implemented internally. This preserves O(1) lookup
+  characteristics." :dynamic true}
+  *sets-as-maps* false)
+
 (def
  #^{:private true}
  separator-symbol        ;separator-symbol will be used for encoding
@@ -164,6 +169,10 @@
 
      (map-entry? value)
      (encode-map-entry value writer pad current-indent indent-size)
+
+     (and *sets-as-maps* (set? value))
+     (encode-coll (zipmap value value)
+                  writer pad next-indent current-indent indent-size)
 
      (coll? value)
      (encode-coll value writer pad next-indent current-indent indent-size)
