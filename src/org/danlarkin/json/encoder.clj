@@ -142,7 +142,7 @@
   (throw (Exception. (str "Unknown Datastructure: " value))))
 
 (defn encode-helper
-  [value #^Writer writer #^IPersistentMap
+  [value #^Writer writer #^clojure.lang.IPersistentMap
    #^String pad #^String current-indent #^Integer indent-size & opts]
   (let [next-indent (if-let [x (first opts)]
                       x

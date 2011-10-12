@@ -24,7 +24,7 @@
 ;; THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 (ns org.danlarkin.json
-  (:import (java.io StringWriter StringReader BufferedReader))
+  (:import (java.io Writer StringWriter StringReader BufferedReader))
   (:use (org.danlarkin.json [encoder :as encoder]
                             [decoder :as decoder])))
 
